@@ -1,0 +1,44 @@
+#! /bin/bash
+
+SQL="psql --username=freecodecamp --dbname=salon --tuples-only -c "
+
+MAIN(){
+  SERVICES=$($SQL"SELECT service_id,name FROM services")
+  echo "$SERVICES" | sed 's/|/ /g' | while read SERVICE_ID SERVICE_NAME
+  do
+      echo "$SERVICE_ID) $SERVICE_NAME"
+  done
+
+  echo Enter the number of the service you would like:
+  read SERVICE_ID_SELECTED
+  SERVICE_EXISTS=$($SQL "SELECT name FROM services WHERE service_id=$SERVICE_ID_SELECTED")
+  if [[ -z $SERVICE_EXISTS ]]
+  then
+    MAIN
+  fi
+  echo Enter your phone number
+  read CUSTOMER_PHONE
+  
+
+  if [[ -z $($SQL "SELECT phone FROM customers WHERE phone='$CUSTOMER_PHONE'") ]]
+  then
+  echo Enter your name:
+  read CUSTOMER_NAME
+    ADD_CLIENT=$($SQL"INSERT INTO customers(phone,name) VALUES('$CUSTOMER_PHONE','$CUSTOMER_NAME')")
+  fi
+  echo "Enter appointment time:"
+  read SERVICE_TIME
+  CUSTOMER_NAME=$($SQL "SELECT name FROM customers WHERE phone='$CUSTOMER_PHONE'")
+  CUSTOMER_ID=$($SQL "SELECT customer_id FROM customers WHERE phone='$CUSTOMER_PHONE'")
+  SERVICE_NAME=$($SQL "SELECT name FROM services WHERE service_id=$SERVICE_ID_SELECTED")
+  ADD_APPOINTMENT=$($SQL"INSERT INTO appointments(service_id,customer_id,time) VALUES($SERVICE_ID_SELECTED,$CUSTOMER_ID,'$SERVICE_TIME')")
+  echo -e "I have put you down for a$SERVICE_NAME at $SERVICE_TIME,$CUSTOMER_NAME."
+  exit
+}
+
+MAIN
+
+
+
+
+
